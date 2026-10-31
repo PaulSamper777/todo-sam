@@ -1,25 +1,26 @@
-import json
 import uuid
 from datetime import datetime, timezone
 
-from utils import table, response, parse_body
+from utils import table, response, parse_body, publish_event
 
 
-def lambda_handler(event, context):
-    body = parse_body(event)
-    if body is None:
-        return response(400, {"message": "JSON inválido"})
+def handler(event, context):
+    data = parse_body(event)
+    if data is None:
+        return response(400, {"message": "El body debe ser JSON válido"})
 
-    title = body.get("title")
-    if not title or not isinstance(title, str):
+    title = str(data.get("title", "")).strip()
+    if not title:
         return response(400, {"message": "El campo 'title' es obligatorio"})
 
-    todo = {
+    now = datetime.now(timezone.utc).isoformat()
+    item = {
         "id": str(uuid.uuid4()),
         "title": title,
-        "completed": bool(body.get("completed", False)),
-        "createdAt": datetime.now(timezone.utc).isoformat(),
+        "completed": False,
+        "createdAt": now,
+        "updatedAt": now,
     }
-
-    table.put_item(Item=todo)
-    return response(201, todo)
+    table.put_item(Item=item)
+    publish_event("todo.created", item)
+    return response(201, item)

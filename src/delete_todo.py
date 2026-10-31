@@ -1,21 +1,15 @@
-from utils import table, response
+from utils import table, response, publish_event
 
 
-def lambda_handler(event, context):
-    todo_id = event.get("pathParameters", {}).get("id")
-
-    if not todo_id:
-        return response(400, {"message": "Falta el ID de la tarea"})
-
+def handler(event, context):
+    todo_id = event["pathParameters"]["id"]
     try:
         result = table.delete_item(
             Key={"id": todo_id},
             ConditionExpression="attribute_exists(id)",
-            ReturnValues="ALL_OLD",
+            ReturnValues="ALL_OLD",  # devuelve el TODO borrado
         )
-        return response(200, {
-            "message": "Tarea eliminada",
-            "todo": result["Attributes"],
-        })
     except table.meta.client.exceptions.ConditionalCheckFailedException:
-        return response(404, {"message": "Tarea no encontrada"})
+        return response(404, {"message": f"TODO {todo_id} no existe"})
+    publish_event("todo.deleted", result["Attributes"])
+    return response(204)

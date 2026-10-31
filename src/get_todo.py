@@ -1,7 +1,7 @@
 from utils import table, response
 
 
-def lambda_handler(event, context):
+def handler(event, context):
     todo_id = event.get("pathParameters", {}).get("id")
 
     if not todo_id:

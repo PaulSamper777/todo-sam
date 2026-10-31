@@ -1,0 +1,11 @@
+{
+  "eventId": "manual-2",
+  "eventType": "todo.completed",
+  "occurredAt": "2026-10-26T12:00:00Z",
+  "source": "cli",
+  "data": {
+    "id": "demo-123",
+    "title": "Evento publicado a mano",
+    "completed": true
+  }
+}
